@@ -2,6 +2,7 @@ from datetime import datetime
 import logging
 import os
 import pickle
+import re
 import shutil
 import sys
 import tempfile
@@ -31,7 +32,7 @@ class AssetManager():
         self._get_config_path("source_path")
         self._get_config_path("machine_path")
 
-        self.conversion_root_folder = os.path.join(self.machine_path, "asset_conversion")
+        self.conversion_root_folder = os.path.join(self.machine_path, "asset_resample")
         self.conversion_originals_folder = os.path.join(self.conversion_root_folder, "originals")
         self.conversion_converted_folder = os.path.join(self.conversion_root_folder, "converted")
         self.converted_media = None
@@ -65,7 +66,7 @@ class AssetManager():
                 self.log.info("    - Cache found from {}".format(
                               datetime.fromtimestamp(stamp).strftime("%b %d %Y %H:%M:%S")))
         except Exception as e:
-            self.log.warning("    - Could not load cache file: {}".format(e))
+            self.log.warning("    - Could not load cache file:\n        {}".format(e))
 
         if refresh or not self.source_media:
             self.log.info("  Loading media files from source folder...")
@@ -133,7 +134,7 @@ class AssetManager():
                 os.stat(self._paths[path_type])
             except(FileNotFoundError):
                 target = "source media" if path_type == "source_path" else "MPF machine"
-                print("MPFSound requires a path to your {} folder.".format(target))
+                print("MPF Asset Manager requires a path to your {} folder.".format(target))
                 print("Path not found: '{}'\nExiting...".format(self._paths[path_type]))
                 sys.exit()
         return self._paths[path_type]
@@ -148,9 +149,10 @@ class AssetManager():
     def exports_path(self):
         return os.path.join(self._paths["machine_path"], "asset_exports")
 
-    def parse_machine_assets(self, write_mode=False, force_update=False):
+    def parse_machine_assets(self, write_mode=False, force_update=False, export_only=False):
         """Main method for mapping assets to config files and updating (if write-mode)."""
-        self.log.info("\nMPF Sound Asset Manager [{}]".format("WRITE MODE" if write_mode else "READ-ONLY"))
+        self.log.info("\nMPF Asset Manager [{}]".format(
+            "EXPORT ONLY" if export_only else "WRITE MODE" if write_mode else "READ-ONLY"))
         self.log.info("----------------------------------------------------")
         self.log.info("Parsing machine configs, assets, and source media:")
         self._load_machine_configs()
@@ -328,7 +330,7 @@ class AssetManager():
     def export_machine_assets(self):
         """Batch output all assets within MPF folders to a single folder for compression/backup."""
         if not self._analysis:
-            self.parse_machine_assets()
+            self.parse_machine_assets(export_only=True)
 
         os.makedirs(self.exports_path, mode=0o755, exist_ok=True)
         count = 0
@@ -354,9 +356,12 @@ class AssetManager():
     def analyze_sample_rates(self, mode=None):
         """Assess all sound files to determine sample rates."""
         if not self._analysis:
-            self.parse_machine_assets()
+            write_mode = mode == "import"
+            export_only = mode == "export"
+            self.parse_machine_assets(write_mode=write_mode, export_only=export_only)
         if mode == "export":
             os.makedirs(self.conversion_originals_folder, mode=0o755, exist_ok=True)
+            os.makedirs(self.conversion_converted_folder, mode=0o755, exist_ok=True)
 
         rates = {}
         mostCommonRate = None
@@ -386,14 +391,15 @@ class AssetManager():
             text = open("{}/RatesAnalysis.txt".format(self.conversion_root_folder), mode="w")
             text.write("\n".join(leastCommonFiles))
             text.close()
-            self.log.info("\n{} files are not {} Hz, see asset_conversions/RatesAnalysis.txt for details".format(
+            self.log.info("\n{} files are not {} Hz, see asset_resample/RatesAnalysis.txt for details.".format(
                 len(leastCommonFiles), mostCommonRate))
 
             for filename in leastCommonFiles:
                 shutil.copy2(filename, "{}/{}".format(self.conversion_originals_folder, filename.split("/").pop()))
-            self.log.info("\n - Those files have been copied to {}".format(self.conversion_originals_folder))
+            self.log.info("\n - Those files have been copied to {}\n".format(self.conversion_originals_folder))
             self.log.info(" - If you batch process them into {},\n".format(self.conversion_converted_folder) +
-                          "   this program will import them to their correct mode folders")
+                          "   MPF Asset Manager will import them to their correct mode folders when you call:\n\n" +
+                          "      mpfam resample --import")
 
         elif mode == "import":
             self.log.info("\nCopying converted files back into mode folders...")
@@ -405,14 +411,14 @@ class AssetManager():
 
                 self.log.debug("{} -> {}".format(source_path, dest_path))
                 # Make a backup of the original
-                shutil.move(dest_path, re.sub(r'\.ogg$', '.original.ogg', dest_path))
+                shutil.move(dest_path, re.sub(r'\.([A-Za-z0-9]+)$', '.original.\g<1>', dest_path))
                 shutil.copy2(source_path, dest_path)
                 count += 1
             self.log.info("Successfully copied {} converted files into their mode folders".format(count))
 
     def _copy_video_assets(self, export=True):
-        videoroot = "./videos"
-        exportroot = "{}/videos".format(self.exports_path)
+        videoroot = os.path.join(self.machine_path, "videos")
+        exportroot = os.path.join(self.exports_path, "videos")
         count = 0
 
         if export:
@@ -425,6 +431,7 @@ class AssetManager():
         os.makedirs(dst, mode=0o755, exist_ok=True)
         for path, dirs, files in os.walk(src):
             for filename in files:
+                # Ignore hidden files
                 if filename[0] == ".":
                     continue
                 target = "{}/{}".format(dst, filename)

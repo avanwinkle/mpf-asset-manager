@@ -1,6 +1,8 @@
 import os
 import re
 
+SOUND_REGEX = 'ogg|wav|mp3|flac|aac'
+
 class AssetTree(object):
     """Class to traverse source asset tree and return file information for assets in the MPF machine and mode folders."""
 
@@ -14,8 +16,8 @@ class AssetTree(object):
             if path in paths_to_exclude:
                 continue
             for filename in files:
-                if re.search(r'\.(ogg|wav)$', filename):
-                    if re.search(r'\.original\.ogg$', filename):
+                if re.search(r'\.(' + SOUND_REGEX + ')$', filename):
+                    if re.search(r'\.original\.(' + SOUND_REGEX + ')$', filename):
                         self._originalfiles.append(filename)
                         self._originalpaths.append(path)
                     else:
@@ -28,7 +30,7 @@ class AssetTree(object):
     def get_file_path(self, filename):
         """Return the path of the first occurrance of a filename."""
         idx = self._soundfiles.index(filename)
-        return "{}/{}".format(self._soundpaths[idx], filename)
+        return os.path.join(self._soundpaths[idx], filename)
 
     def get_duplicates(self):
         """Return a mapping of assets with filenames appearing in multiple mode folders."""
@@ -37,8 +39,8 @@ class AssetTree(object):
             if self._soundfiles.index(filename) != idx:
                 if filename not in dupes:
                     # Add the first instance from before we knew it was a dupe
-                    dupes[filename] = ["{}/{}".format(self._soundpaths[self._soundfiles.index(filename)], filename)]
-                dupes[filename].append("{}/{}".format(self._soundpaths[idx], filename))
+                    dupes[filename] = [os.path.join(self._soundpaths[self._soundfiles.index(filename)], filename)]
+                dupes[filename].append(os.path.join(self._soundpaths[idx], filename))
         return dupes
 
     def get_files(self):

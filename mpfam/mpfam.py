@@ -1,5 +1,5 @@
 """Sound asset manager for MPF."""
-from classes.AssetManager import AssetManager
+from mpfam.core import AssetManager
 
 from datetime import datetime
 import io
@@ -59,13 +59,13 @@ MPF Asset Manager
             running = False
 
 
-def main():
+def launch():
     """Primary method: do something."""
     args = sys.argv[1:]
     verbose = "-v" in args
     write_mode = "-w" in args
 
-    manager = AssetManager(verbose=verbose)
+    manager = AssetManager.AssetManager(verbose=verbose)
 
     if not manager.source_path:
         print("ERROR: Source media not found. Exiting.")
@@ -78,9 +78,14 @@ def main():
         interactive(manager)
         return
 
+    if args[0] == "help" or "-h" in args[0]:
+        args = None
+
+    valid_arg = None
     if args:
         starttime = datetime.now()
-        if args[0] == "parse":
+        valid_arg = True
+        if args[0] == "analyze" or args[0] == "analyse":
             manager.parse_machine_assets(write_mode=write_mode)
         elif args[0] == "copy":
             manager.cleanup_machine_assets(write_mode=write_mode)
@@ -90,45 +95,59 @@ def main():
             manager.clear_cache()
         elif args[0] == "export":
             manager.export_machine_assets()
-        elif args[0] == "convert":
+        elif args[0] == "resample":
             mode = "export" if "--export" in args else "import" if "--import" in args else None
             manager.analyze_sample_rates(mode=mode)
-        endtime = datetime.now()
-        manager.log.info("\nOperation complete in {:.2f} seconds".format((endtime - starttime).total_seconds()))
+        else:
+            valid_arg = False
 
-        return
+        if valid_arg:
+            endtime = datetime.now()
+            manager.log.info("\nOperation complete in {:.2f} seconds".format((endtime - starttime).total_seconds()))
+            return
 
     print("""
 ---Mission Pinball Asset File Script---
 
 Use this script to copy audio files from your source media folder into the
-corresponding MPF Pinball mode folders.
+corresponding MPF Pinball mode folders, move files from old mode folders to
+new ones, and export all assets from the machine folder.
 
 Options:
+    analyze -  Print analysis of config files and source folder with summary of
+                    files to move/copy/remove. No changes are made.
+
     update - Copy all audio files referenced in configs from the source folder
-                     to the appropriate modes/(name)/sounds/(track) folders, and remove
-                     all audio files not referenced in config files
+                    to the appropriate modes/(name)/sounds/(track) folders,
+                    and remove all audio files not referenced in config files
 
-    parse -  Print analysis of config files and source folder with summary of
-                     files to move/copy/remove
+    export - Export the asset files from the MPF mode folders to a single folder
+                    for easy transfer to a machine without the complete source
+                    asset folder.
 
-    export - Export the asset files from the MPF mode folders to a single folder,
-                     for quick setup on a machine without the complete Mass Effect 2
-                     extraction folder (i.e. the in-cabinet pinball controller).
+    resample - Inspect all audio files and generate a report of the sample rates.
+                    Useful to determine ideal target sample rate for conversion
+                    of all audio assets, which improves MPF performance.
 
-    clear -  Clear cached directory trees (for use when source media files change)
+        Optional arguments for resample:
+        --------------------------------
+        --export:   Create a new folder with copies of all assets that are not
+                    the most common sample rate. Ideal for running a batch
+                    conversion process in the audio program of your choice.
 
-Params:
-    path_to_sounds - Path to the folder containing all the source audio files
+        --import:   Replace existing machine assets with the normalized assets
+                    from the batch conversion process. All original asset files
+                    are are preserved with an \".original\" extension.
+
+    clear -  Clear cached directory trees (use when source media files change)
 
 Flags:
     -v    - Verbose mode
     -w    - Write mode
 
 Usage:
->> python mpfam.py [copy|parse|clear] [<path_to_sounds>] [-v|-w]
+>> python mpfam.py [analyze|update|export|clear] [-v|-w]
 """)
 
-
-if __name__ == "__main__":
-    main()
+    if valid_arg is False:
+        print("ERROR: Unknown command '{}'.".format(args[0]))
