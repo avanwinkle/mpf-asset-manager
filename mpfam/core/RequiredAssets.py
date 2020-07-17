@@ -1,6 +1,6 @@
 from mpf.file_interfaces.yaml_roundtrip import YamlRoundtrip
 
-from .ModeAssets import ModeAssets
+from mpfam.core.ModeAssets import ModeAssets
 
 import io
 import os

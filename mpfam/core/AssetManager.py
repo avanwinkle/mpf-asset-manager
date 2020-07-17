@@ -10,20 +10,22 @@ import tempfile
 # Requires: pysoundfile (via pip)
 import soundfile as sf
 
-from .AssetTree import AssetTree
-from .RequiredAssets import RequiredAssets
+from mpfam.core.AssetTree import AssetTree
+from mpfam.core.RequiredAssets import RequiredAssets
 
 class AssetManager():
     """Master class for managing audio and video assets."""
 
     def __init__(self, verbose=False):
         """Initialize and find sources."""
+        mpfam_path = os.path.abspath(os.path.join(mpfam.__path__[0],
+                                                     os.pardir))
         self.machine_configs = None
         self.machine_assets = None
         self.source_media = None
         self._analysis = None
         self._paths = { "source_path": None, "machine_path": None }
-        self._config_file_path = "./.mpfam_config"
+        self._config_file_path = os.path.join(mpfam_path, ".mpfam_config")
         self.cache_file_name = "mpfam_cache"
 
         self.log = logging.getLogger()
