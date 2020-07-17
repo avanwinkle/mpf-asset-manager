@@ -9,7 +9,7 @@ import tempfile
 
 # Requires: pysoundfile (via pip)
 import soundfile as sf
-
+import mpfam
 from mpfam.core.AssetTree import AssetTree
 from mpfam.core.RequiredAssets import RequiredAssets
 
