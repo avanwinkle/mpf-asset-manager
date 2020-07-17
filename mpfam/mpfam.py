@@ -87,8 +87,8 @@ def launch():
         valid_arg = True
         if args[0] == "analyze" or args[0] == "analyse":
             manager.parse_machine_assets(write_mode=write_mode)
-        elif args[0] == "copy":
-            manager.cleanup_machine_assets(write_mode=write_mode)
+        elif args[0] == "sim" or args[0] == "simulate":
+            manager.cleanup_machine_assets(write_mode=False)
         elif args[0] == "update":
             manager.cleanup_machine_assets(write_mode=True)
         elif args[0] == "clear":
@@ -114,7 +114,7 @@ corresponding MPF Pinball mode folders, move files from old mode folders to
 new ones, and export all assets from the machine folder.
 
 Options:
-    analyze -  Print analysis of config files and source folder with summary of
+    sim -  Print analysis of config files and source folder with summary of
                     files to move/copy/remove. No changes are made.
 
     update - Copy all audio files referenced in configs from the source folder
@@ -124,6 +124,9 @@ Options:
     export - Export the asset files from the MPF mode folders to a single folder
                     for easy transfer to a machine without the complete source
                     asset folder.
+
+    clear - Clear cached source media tree. Necessary if the source media files
+                    have changed.
 
     resample - Inspect all audio files and generate a report of the sample rates.
                     Useful to determine ideal target sample rate for conversion
@@ -143,10 +146,9 @@ Options:
 
 Flags:
     -v    - Verbose mode
-    -w    - Write mode
 
 Usage:
->> python mpfam.py [analyze|update|export|clear] [-v|-w]
+>> mpfam [sim|update|export|clear|resample] [-v]
 """)
 
     if valid_arg is False:
