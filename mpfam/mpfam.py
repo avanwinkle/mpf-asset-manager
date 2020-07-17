@@ -2,13 +2,7 @@
 from mpfam.core import AssetManager
 
 from datetime import datetime
-import io
-import logging
-import os
-import pickle
-import re
 import sys
-import tempfile
 
 def interactive(manager):
     """Interactive shell mode."""

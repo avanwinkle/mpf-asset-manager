@@ -3,13 +3,14 @@ from mpf.core.utility_functions import Util
 class ModeAssets(object):
     """Class to parse a mode's config file and find asset file definitions."""
 
-    def __init__(self, mode_name=None):
+    def __init__(self, mode_name, log):
         """Initialize."""
         self._dict = {}
         self._tracks = []
         self._files = []
         self._pool_tracks = {}
         self.name = mode_name
+        self.log = log
 
     def parse_config(self, mode_config):
         """Parse a yaml config file and create mappings for required assets."""
@@ -19,7 +20,7 @@ class ModeAssets(object):
         for sound_pool in mode_config.get('sound_pools', {}).values():
             for soundname in Util.string_to_list(sound_pool['sounds']):
                 if soundname in self._pool_tracks and self._pool_tracks[soundname] != sound_pool['track']:
-                    print("ERROR: Sound {} exists in multiple pools/tracks in config {}".format(soundname, self.name))
+                    self.log.error("ERROR: Sound {} exists in multiple pools/tracks in config {}".format(soundname, self.name))
                     return
                 try:
                     self._pool_tracks[soundname] = sound_pool['track']
@@ -38,12 +39,8 @@ class ModeAssets(object):
         # If this sound is in a sound pool with a track, use that
         elif pool_track:
             trackname = pool_track
-        # Mass Effect 2 Pinball defaults:
-        elif filename.startswith('en_us_'):
-            trackname = 'voice'
-        elif filename.startswith('mus_'):
-            trackname = 'music'
         else:
+            self.log.warning("WARNING: Mode {}: {} does not have a track specified.".format(self.name, filename))
             trackname = 'unknown'
 
         self._add_track(trackname)

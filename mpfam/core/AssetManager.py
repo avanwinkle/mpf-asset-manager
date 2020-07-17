@@ -57,7 +57,7 @@ class AssetManager():
     def _load_machine_configs(self, refresh=False):
         if refresh or not self.machine_configs:
             self.log.info("  Loading config files...")
-            self.machine_configs = RequiredAssets(self.machine_path)
+            self.machine_configs = RequiredAssets(self.machine_path, self.log)
 
     def _load_source_media(self, refresh=False):
         self.log.info("  Looking for source media cache...")
@@ -72,7 +72,7 @@ class AssetManager():
 
         if refresh or not self.source_media:
             self.log.info("  Loading media files from source folder...")
-            self.source_media = AssetTree(self._paths["source_path"])
+            self.source_media = AssetTree(self._paths["source_path"], self.log)
 
             self.log.info("   - creating cache of source media...")
             self._write_to_cache(self.source_media)
@@ -81,14 +81,14 @@ class AssetManager():
             try:
                 os.stat(self.conversion_converted_folder)
                 self.log.info("  Loading converted media files...")
-                self.converted_media = AssetTree(self.conversion_converted_folder)
+                self.converted_media = AssetTree(self.conversion_converted_folder, self.log)
             except(FileNotFoundError):
                 self.log.info("  No converted media files found.")
 
     def _load_machine_assets(self, refresh=False):
         if refresh or not self.machine_assets:
             self.log.info("  Loading assets from machine folder {}...".format(self._paths["machine_path"]))
-            self.machine_assets = AssetTree(self._paths["machine_path"], paths_to_exclude=[
+            self.machine_assets = AssetTree(self._paths["machine_path"], self.log, paths_to_exclude=[
                 self.exports_path, self.conversion_originals_folder, self.conversion_converted_folder])
 
     def refresh(self):
@@ -100,6 +100,7 @@ class AssetManager():
     def _set_config_path(self, path_type):
         """Define the path to look for media assets."""
         target = "media source" if path_type == "source_path" else "MPF machine"
+        # Use print instead of log because this requires explicit user input and shouldn't be muted
         print("Set path to your {} folder:".format(target))
         rawpath = input(">> ").strip()
         # Store full paths, not relative
@@ -130,14 +131,14 @@ class AssetManager():
                     raise FileNotFoundError()
             except(FileNotFoundError):
                 if not self._paths[path_type]:
-                    print("Unable to read {}.".format(path_type))
+                    self.log.info("Unable to read {}.".format(path_type))
                     self._set_config_path(path_type)
             try:
                 os.stat(self._paths[path_type])
             except(FileNotFoundError):
                 target = "source media" if path_type == "source_path" else "MPF machine"
-                print("MPF Asset Manager requires a path to your {} folder.".format(target))
-                print("Path not found: '{}'\nExiting...".format(self._paths[path_type]))
+                self.log.info("MPF Asset Manager requires a path to your {} folder.".format(target))
+                self.log.info("Path not found: '{}'\nExiting...".format(self._paths[path_type]))
                 sys.exit()
         return self._paths[path_type]
 
@@ -208,7 +209,7 @@ class AssetManager():
             for track, sounds in modesounds.by_track().items():
                 for sound in sounds:
                     if sound in self._analysis['sounds']:
-                        print("ERROR: Sound file '{}' in mode {} also exists in mode {}".format(
+                        self.log.error("ERROR: Sound file '{}' in mode {} also exists in mode {}".format(
                               sound, mode, self._analysis['sounds'][sound]['mode']))
                         return
                     modepath = "{}/modes/{}/sounds/{}/".format(

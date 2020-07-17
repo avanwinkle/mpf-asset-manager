@@ -8,7 +8,7 @@ import os
 class RequiredAssets(object):
     """Class object to parse, return, and query mode config files."""
 
-    def __init__(self, machine_path):
+    def __init__(self, machine_path, log):
         """Initialize: create config mappings and walk config files."""
         self._allconfigs = {}  # Key: mode/config name, Value: ModeSounds object
         self._childconfigs = {}  # Key: mode/config name, Value: ModeSounds object
@@ -26,7 +26,7 @@ class RequiredAssets(object):
                     with io.open('{}/{}'.format(path, filename), 'r', encoding='utf-8') as f:
                         source = f.read()
                     conf = loader_roundtrip.process(source)
-                    sounds = ModeAssets(configfilename)
+                    sounds = ModeAssets(configfilename, log)
                     sounds.parse_config(conf)
                     if len(sounds) > 0:
                         self._allconfigs[configfilename] = sounds
