@@ -66,19 +66,18 @@ Interactive mode contains the following features:
 > but does not write or delete any files.
 
 **3. Set media source folder**
-> Set or change the folder containing the Mass Effect 2 extracted audio
-> files.
+> Sets or changes the folder containing the source media assets.
 
 **4. Refresh configs and files**
-> Reloads the MPF modes and configurations. Useful if Sound Manager is
-> kept running while config changes are saved.
+> Reloads the MPF modes and configurations. Useful if Asset Manager is
+> kept running while config files are changed.
 
 **5. Clear cached media source tree**
 > Refreshes the source media files. For performance reasons, the source
 > asset folder tree is cached. If any source assets are moved, renamed,
 > or added, a refresh may be necessary.
 
-*Note: On startup, Sound Manager will log whether it's referencing cached
+*Note: On startup, MPF Asset Manager will log whether it's referencing cached
 asset files or building a new cache.*
 
 Command Line Mode
