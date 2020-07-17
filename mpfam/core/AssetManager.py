@@ -349,7 +349,22 @@ class AssetManager():
 
         # Dump the readme too, to have instructions handy on the in-cabinet controller
         text = open("{}/_README.txt".format(self.exports_path), mode="w")
-        text.write("README")
+        text.write("""
+Exported by MPF Asset Manager (mpfam). To populate
+these files into your machine's mode folders, run:
+  
+    mpfam update
+
+and set your media source folder to this directory.
+
+If you don't have mpfam on this computer, you can
+install it via:
+
+    pip install mpf-am
+
+For more information, visit 
+https://github.com/avanwinkle/mpf-asset-manager
+        """)
         text.close()
 
         self.log.info("\nExport complete: {} audio files, {} MB (plus {} videos)".format(
