@@ -1,9 +1,10 @@
-MPF Asset Sound Manager
+MPF Asset Manager
 =======================
 
-Asset Manager automates the population of media assets into the mode folders of
-a Mission Pinball game. It will copy new files, reorganized moved files, cleanup
-unused files, and warn of missing and duplicated files.
+MPF Asset Manager automates the population of media assets into the mode folders of
+a [Mission Pinball Framework game](https://www.missionpinball.org). It will copy 
+new files, reorganize moved files, cleanup unused files, and warn of missing 
+and duplicated files.
 
 ### Purpose
 MPF is designed to store assets in subfolders of the modes that use them. 
@@ -34,11 +35,10 @@ MPF Asset Manager can user that folder as the media source folder and instantly
 copy the assets into the correct mode subfolders.
 
 
-Usage:
+Usage
 -------------
 
-1. MPF Asset Manager is run with the following command:
-    ```mpfam```
+1. MPF Asset Manager is run with the command: `mpfam`
 
 2. If you have not run Asset Manager before you will be prompted to enter
     the location of your source media folder. Asset Manager remembers the
@@ -50,31 +50,30 @@ Usage:
 That's it!
 
 
-Interactive Mode:
+Interactive Mode
 -----------------
 
-You can run Asset Manager interactively with the basic command:
-    ```mpfam```
+You can run Asset Manager interactively with the command `mpfam`.
 
 Interactive mode contains the following features:
 
-1. Update Assets
+**1. Update Assets**
 > The default function of Sound Manager. Will copy and move media files,
 > remove unused files, and report any missing/duplicate assets.
 
-2. Analyze machine and audio
+**2. Analyze machine and audio**
 > Read-only behavior. Performs the same analysis as the update routine,
 > but does not write or delete any files.
 
-3. Set media source folder
+**3. Set media source folder**
 > Set or change the folder containing the Mass Effect 2 extracted audio
 > files.
 
-4. Refresh configs and files
+**4. Refresh configs and files**
 > Reloads the MPF modes and configurations. Useful if Sound Manager is
 > kept running while config changes are saved.
 
-5. Clear cached media source tree
+**5. Clear cached media source tree**
 > Refreshes the source media files. For performance reasons, the source
 > asset folder tree is cached. If any source assets are moved, renamed,
 > or added, a refresh may be necessary.
@@ -82,7 +81,7 @@ Interactive mode contains the following features:
 *Note: On startup, Sound Manager will log whether it's referencing cached
 asset files or building a new cache.*
 
-Command Line Mode:
+Command Line Mode
 ------------------
 
 You can perform Asset Manager functions directly from the command line. The
