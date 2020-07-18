@@ -64,6 +64,7 @@ def launch():
     args = sys.argv[1:]
     verbose = "-v" in args
     write_mode = "-w" in args
+    export_zip = "-z" in args
 
     manager = AssetManager.AssetManager(verbose=verbose)
 
@@ -94,7 +95,7 @@ def launch():
         elif args[0] == "clear":
             manager.clear_cache()
         elif args[0] == "export":
-            manager.export_machine_assets()
+            manager.export_machine_assets(saveAsZip=export_zip)
         elif args[0] == "resample" or args[0] == "sample":
             mode = "export" if "--export" in args else "import" if "--import" in args else None
             manager.analyze_sample_rates(mode=mode)
@@ -146,7 +147,7 @@ Options:
 
 Flags:
     -v    - Verbose mode
-
+    -z    - Save as zip file (when exporting)
 Usage:
 >> mpfam [sim|update|export|clear|resample] [-v]
 """)

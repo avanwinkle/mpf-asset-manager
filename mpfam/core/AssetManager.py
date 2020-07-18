@@ -6,6 +6,7 @@ import re
 import shutil
 import sys
 import tempfile
+from zipfile import ZipFile
 
 # Requires: pysoundfile (via pip)
 import soundfile as sf
@@ -330,27 +331,35 @@ class AssetManager():
         else:
             self.log.info("\nSimulation complete, no files changed.")
 
-    def export_machine_assets(self):
+    def export_machine_assets(self, saveAsZip=False):
         """Batch output all assets within MPF folders to a single folder for compression/backup."""
         if not self._analysis:
             self.parse_machine_assets(export_only=True)
 
-        os.makedirs(self.exports_path, mode=0o755, exist_ok=True)
         count = 0
         size = 0
-
+        zipFile = None
+        if saveAsZip:
+            zipfilename = "{}{}".format(self.exports_path, ".zip")
+            zipFile = ZipFile(zipfilename, mode='w')
+        else:
+            os.makedirs(self.exports_path, mode=0o755, exist_ok=True)
+        
         for filename in self._analysis['found']:
             sound = self._analysis['sounds'][filename]
             path = "{}{}".format(sound['modepath'], filename)
-            shutil.copy2(path, "{}/{}".format(self.exports_path, filename))
+            if saveAsZip:
+                zipFile.write(path, filename)
+            else:
+                shutil.copy2(path, "{}/{}".format(self.exports_path, filename))
             size += sound['exists'].st_size
             count += 1
 
-        videocount = self._copy_video_assets(export=True)
+        videocount = self._copy_video_assets(export=True, zipFile=zipFile)
 
         # Dump the readme too, to have instructions handy on the in-cabinet controller
-        text = open("{}/_README.txt".format(self.exports_path), mode="w")
-        text.write("""
+        readme_filename = "_README.txt"
+        readme_text = """
 Exported by MPF Asset Manager (mpfam). To populate
 these files into your machine's mode folders, run:
   
@@ -365,8 +374,14 @@ install it via:
 
 For more information, visit 
 https://github.com/avanwinkle/mpf-asset-manager
-        """)
-        text.close()
+        """
+
+        if saveAsZip:
+            zipFile.writestr(readme_filename, readme_text)
+        else:
+            text = open(os.path.join(self.exports_path, readme_filename), mode="w")
+            text.write(readme_text)
+            text.close()
 
         self.log.info("\nExport complete: {} audio files, {} MB (plus {} videos)".format(
                       count, round(size / 100000) / 10, videocount))
@@ -438,7 +453,7 @@ https://github.com/avanwinkle/mpf-asset-manager
                 count += 1
             self.log.info("Successfully copied {} converted files into their mode folders".format(count))
 
-    def _copy_video_assets(self, export=True):
+    def _copy_video_assets(self, export=True, zipFile=None):
         videoroot = os.path.join(self.machine_path, "videos")
         exportroot = os.path.join(self.exports_path, "videos")
         count = 0
@@ -450,13 +465,14 @@ https://github.com/avanwinkle/mpf-asset-manager
             src = exportroot
             dst = videoroot
 
-        os.makedirs(dst, mode=0o755, exist_ok=True)
+        if export and not zipFile:
+            os.makedirs(dst, mode=0o755, exist_ok=True)
         for path, dirs, files in os.walk(src):
             for filename in files:
                 # Ignore hidden files
                 if filename[0] == ".":
                     continue
-                target = "{}/{}".format(dst, filename)
+                target = os.path.join(dst, filename)
                 # Always copy on export, but not import
                 do_copy = export
                 try:
@@ -465,7 +481,11 @@ https://github.com/avanwinkle/mpf-asset-manager
                     do_copy = True
 
                 if do_copy:
-                    shutil.copy2("{}/{}".format(src, filename), target)
+                    srcfilepath = os.path.join(src, filename)
+                    if zipFile:
+                        zipFile.write(srcfilepath, os.path.join("videos", filename))
+                    else:
+                        shutil.copy2(srcfilepath, target)
                     count += 1
         return count
 
