@@ -28,6 +28,8 @@ MPF Asset Manager
     6. Export assets
 
     7. Analyze sample rates (takes time)
+        7e - export uncommon sample files
+        7i - import converted sample files
 
     8. Force refresh of all files
 
@@ -47,6 +49,10 @@ MPF Asset Manager
             manager.export_machine_assets()
         elif selection == "7":
             manager.analyze_sample_rates()
+        elif selection == "7e":
+            manager.analyze_sample_rates(mode="export")
+        elif selection == "7i":
+            manager.analyze_sample_rates(mode="import")
         elif selection == "8":
             manager.cleanup_machine_assets(write_mode=True, force_update=True)
         elif selection == "0" or not selection:
@@ -89,7 +95,7 @@ def launch():
             manager.clear_cache()
         elif args[0] == "export":
             manager.export_machine_assets()
-        elif args[0] == "resample":
+        elif args[0] == "resample" or args[0] == "sample":
             mode = "export" if "--export" in args else "import" if "--import" in args else None
             manager.analyze_sample_rates(mode=mode)
         else:

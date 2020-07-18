@@ -34,7 +34,7 @@ class AssetManager():
         self._get_config_path("source_path")
         self._get_config_path("machine_path")
 
-        self.conversion_root_folder = os.path.join(self.machine_path, "asset_resample")
+        self.conversion_root_folder = os.path.join(self.machine_path, "mpfam_resample")
         self.conversion_originals_folder = os.path.join(self.conversion_root_folder, "originals")
         self.conversion_converted_folder = os.path.join(self.conversion_root_folder, "converted")
         self.converted_media = None
@@ -150,7 +150,7 @@ class AssetManager():
         return self._paths["machine_path"]
     @property
     def exports_path(self):
-        return os.path.join(self._paths["machine_path"], "asset_exports")
+        return os.path.join(self._paths["machine_path"], "mpfam_exports")
 
     def parse_machine_assets(self, write_mode=False, force_update=False, export_only=False):
         """Main method for mapping assets to config files and updating (if write-mode)."""
@@ -409,7 +409,7 @@ https://github.com/avanwinkle/mpf-asset-manager
             text = open("{}/RatesAnalysis.txt".format(self.conversion_root_folder), mode="w")
             text.write("\n".join(leastCommonFiles))
             text.close()
-            self.log.info("\n{} files are not {} Hz, see asset_resample/RatesAnalysis.txt for details.".format(
+            self.log.info("\n{} files are not {} Hz, see mpfam_resample/RatesAnalysis.txt for details.".format(
                 len(leastCommonFiles), mostCommonRate))
 
             for filename in leastCommonFiles:
@@ -421,6 +421,10 @@ https://github.com/avanwinkle/mpf-asset-manager
 
         elif mode == "import":
             self.log.info("\nCopying converted files back into mode folders...")
+
+            # It's possible that no converted files existed when MPFAM started.
+            self.converted_media = None
+            self._load_source_media()
             count = 0
             for filename in self.converted_media.get_files():
                 source_path = "{}/{}".format(self.conversion_converted_folder, filename)
