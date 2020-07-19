@@ -131,9 +131,8 @@ class AssetManager():
                 if not self._paths[path_type] or not os.stat(self._paths[path_type]):
                     raise FileNotFoundError()
             except(FileNotFoundError):
-                if not self._paths[path_type]:
-                    self.log.info("Unable to read {}.".format(path_type))
-                    self._set_config_path(path_type)
+                self.log.info("Unable to read {}.".format(path_type))
+                self._set_config_path(path_type)
             try:
                 os.stat(self._paths[path_type])
             except(FileNotFoundError):
@@ -455,7 +454,7 @@ https://github.com/avanwinkle/mpf-asset-manager
 
     def _copy_video_assets(self, export=True, zipFile=None):
         videoroot = os.path.join(self.machine_path, "videos")
-        exportroot = os.path.join(self.exports_path, "videos")
+        exportroot = os.path.join(self.source_path, "videos")
         count = 0
 
         if export:
@@ -465,7 +464,8 @@ https://github.com/avanwinkle/mpf-asset-manager
             src = exportroot
             dst = videoroot
 
-        if export and not zipFile:
+        # Ensure the destination folder exists
+        if not zipFile:
             os.makedirs(dst, mode=0o755, exist_ok=True)
         for path, dirs, files in os.walk(src):
             for filename in files:
