@@ -11,8 +11,7 @@ class AssetTree(object):
         # Most efficient way: two arrays in parallel?
         self._soundfiles, self._soundpaths = [], []
         self._originalfiles, self._originalpaths = [], []
-        self.log = log
-        for path, dirs, files in os.walk(fileroot):
+        for path, __dirs, files in os.walk(fileroot):
             # Don't look in the exports folder!
             if path in paths_to_exclude:
                 continue
@@ -23,7 +22,7 @@ class AssetTree(object):
                         self._originalpaths.append(path)
                     else:
                         if filename in self._soundfiles:
-                            self.log.info("File {} found in {} but also in {}".format(
+                            log.info("File {} found in {} but also in {}".format(
                                   filename, path, self._soundpaths[self._soundfiles.index(filename)]))
                         self._soundfiles.append(filename)
                         self._soundpaths.append(path)
