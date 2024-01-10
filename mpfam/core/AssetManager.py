@@ -145,6 +145,10 @@ class AssetManager():
     @property
     def source_path(self):
         return self._paths["source_path"]
+
+    def set_source_path(self):
+        return self._set_config_path("source_path")
+
     @property
     def machine_path(self):
         return self._paths["machine_path"]
@@ -343,7 +347,7 @@ class AssetManager():
             zipFile = ZipFile(zipfilename, mode='w')
         else:
             os.makedirs(self.exports_path, mode=0o755, exist_ok=True)
-        
+
         for filename in self._analysis['found']:
             sound = self._analysis['sounds'][filename]
             path = "{}{}".format(sound['modepath'], filename)
@@ -361,7 +365,7 @@ class AssetManager():
         readme_text = """
 Exported by MPF Asset Manager (mpfam). To populate
 these files into your machine's mode folders, run:
-  
+
     mpfam update
 
 and set your media source folder to this directory.
@@ -371,7 +375,7 @@ install it via:
 
     pip install mpf-am
 
-For more information, visit 
+For more information, visit
 https://github.com/avanwinkle/mpf-asset-manager
         """
 
@@ -488,4 +492,3 @@ https://github.com/avanwinkle/mpf-asset-manager
                         shutil.copy2(srcfilepath, target)
                     count += 1
         return count
-

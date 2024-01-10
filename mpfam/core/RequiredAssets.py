@@ -1,5 +1,6 @@
-from mpf.file_interfaces.yaml_roundtrip import YamlRoundtrip
+#from mpf.file_interfaces.yaml_roundtrip import YamlRoundtrip
 
+from mpf.file_interfaces.yaml_interface import YamlInterface
 from mpfam.core.ModeAssets import ModeAssets
 
 import io
@@ -18,14 +19,16 @@ class RequiredAssets(object):
         # Track modes that are imported into parent modes, so we don't scan them twice
         self._configparents = {}  # Key: child config name, Value: parent config
 
-        loader_roundtrip = YamlRoundtrip()
+        #loader_roundtrip = YamlRoundtrip()
+        #config = YamlInterface.process(config_spec)
         for path, __dirs, files in os.walk(os.path.join(machine_path, 'modes')):
             for filename in files:
                 if filename.endswith('.yaml'):
                     configfilename = filename[:-5]
                     with io.open('{}/{}'.format(path, filename), 'r', encoding='utf-8') as f:
                         source = f.read()
-                    conf = loader_roundtrip.process(source)
+                    #conf = loader_roundtrip.process(source)
+                    conf = YamlInterface.process(source)
                     sounds = ModeAssets(configfilename, log)
                     sounds.parse_config(conf)
                     if len(sounds) > 0:
